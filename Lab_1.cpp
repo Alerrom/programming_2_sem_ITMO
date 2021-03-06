@@ -3,6 +3,20 @@
 #include <vector>
 #include <math.h>
 
+/*
+1) Как-то странно, что есть класс точка, но он нигде не используется, а вместо него вектор float 
+(причём даже нигде нет проверки, что там именно 2 элемента)
+Разве не проще (не говоря уже о том, что правильнее) было использовать точку?+
+
+2) Почему-то в треугольнике public наследование, в трапеции - protected, а правильный многоугольник совсем не наследуется+
+Это как-то очень странно
+Еще у правильного многоугольника не задается положение в пространстве, а только вид задается+
+
+3) Много повторяющихся математических операций, можно было бы вынести это в отдельные методы/функции/операторы и код бы стал лучше
+
+Про наследование - нет динамического полиморфизма
+*/
+
 class CPoint {
 public:
 	explicit CPoint(float x = 0.0f, float y = 0.0f)
@@ -34,13 +48,36 @@ private:
 	float y_;
 };
 
+float Distant(const CPoint& p_1, const CPoint& p_2) {
+	return sqrt(pow(p_1.Absciss() - p_2.Absciss(), 2)
+		+ pow(p_1.Ordinat() - p_2.Ordinat(), 2));
+}
+
+bool check_point_repeat(const std::vector<CPoint>& line) {
+	bool flag = true;
+	for (unsigned i = 0; i < line.size() - 1; i++) {
+		for (unsigned j = i + 1; j < line.size(); j++) {
+			if (line[i].Absciss() == line[j].Absciss() &&
+				line[i].Ordinat() == line[j].Ordinat()) {
+				flag = false;
+				break;
+			}
+		}
+	}
+	return flag;
+}
+
 class CPolygonalLine {
 public:
-	explicit CPolygonalLine(std::vector<std::vector<float>> PolygonalLine = {{0.0f, 0.0f}, {1.0f, 0.0f}})
+	explicit CPolygonalLine(std::vector<CPoint> PolygonalLine = {CPoint{0.0f, 0.0f}, CPoint{1.0f, 0.0f}})
 		: PolygonalLine_(PolygonalLine)
 	{
 		if (!check_point_repeat(PolygonalLine_)) {
-			std::cout << "Error: Incorrect input" << '\n';
+			std::cout << "Error: Incorrect input - some points repeat" << '\n';
+			std::exit(false);
+		}
+		else if (!check_point_number(PolygonalLine)) {
+			std::cout << "Error: Incorrect input - wrong number of points" << '\n';
 			std::exit(false);
 		}
 	}
@@ -52,10 +89,12 @@ public:
 	~CPolygonalLine() = default;
 
 	//methods
-	void AddPoint(const std::vector<float>& p) {
-		if (p[0] == PolygonalLine_[PolygonalLine_.size() - 1][0]
-			&& p[1] == PolygonalLine_[PolygonalLine_.size() - 1][1])
+	void AddPoint(const CPoint& p) {
+		if (p.Absciss() == PolygonalLine_[PolygonalLine_.size() - 1].Absciss()
+			&& p.Ordinat() == PolygonalLine_[PolygonalLine_.size() - 1].Ordinat()) {
 			std::cout << "Sorry, you put the same point in the end. Nothing happend)" << '\n';
+			return;
+		}
 		PolygonalLine_.push_back(p);
 	}
 
@@ -69,40 +108,30 @@ public:
 
 	void PrintPolygonalLine() {
 		for (unsigned i = 0; i < PolygonalLine_.size(); i++) {
-			std::cout << "x_" << i << ' ' << PolygonalLine_[i][0] << ' ' << PolygonalLine_[i][1] << '\n';
+			std::cout << "x_" << i << ' ';
+			PolygonalLine_[i].Print();
 		}
 	}
 
 private:
-	std::vector<std::vector<float>> PolygonalLine_;
+	std::vector<CPoint> PolygonalLine_;
 
-	float Distant(const std::vector<float>& p_1, const std::vector<float>& p_2) {
-		return sqrt(pow(p_1[0] - p_2[0], 2)
-			+ pow(p_1[1] - p_2[1], 2));
-	}
-
-	bool check_point_repeat(const std::vector<std::vector<float>>& ClosedLine) {
-		bool flag = true;
-		for (unsigned i = 0; i < ClosedLine.size() - 1; i++) {
-			for (unsigned j = i + 1; j < ClosedLine.size(); j++) {
-				if (ClosedLine[i][0] == ClosedLine[j][0] &&
-					ClosedLine[i][1] == ClosedLine[j][1]) {
-					flag = false;
-					break;
-				}
-			}
-		}
-		return flag;
+	bool check_point_number(const std::vector<CPoint>& Polygon) {
+		return !(Polygon.size() < 2);
 	}
 };
 
 class CClosedPolygonalLine {
 public:
-	explicit CClosedPolygonalLine(std::vector<std::vector<float>> ClosedPolygonalLine = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}})
+	explicit CClosedPolygonalLine(std::vector<CPoint> ClosedPolygonalLine = { CPoint{0.0f, 0.0f}, CPoint{1.0f, 0.0f}, CPoint{0.0f, 1.0f}})
 		: ClosedPolygonalLine_(ClosedPolygonalLine)
 	{
 		if (!check_point_repeat(ClosedPolygonalLine)) {
-			std::cout << "Error: Incorrect input" << '\n';
+			std::cout << "Error: Incorrect input - some points repeat" << '\n';
+			std::exit(false);
+		}
+		else if (!check_point_number(ClosedPolygonalLine)) {
+			std::cout << "Error: Incorrect input - wrong number of points" << '\n';
 			std::exit(false);
 		}
 	}
@@ -112,7 +141,6 @@ public:
 	CClosedPolygonalLine& operator=(const CClosedPolygonalLine& other) = default;
 
 	~CClosedPolygonalLine() = default;
-
 
 	//methods
 	float Lenght() {
@@ -124,40 +152,36 @@ public:
 	}
 
 	void Print() {
-		for (unsigned i = 0; i < ClosedPolygonalLine_.size(); i++)
-			std::cout << "x_" << i << ' ' << ClosedPolygonalLine_[i][0] << ' ' << ClosedPolygonalLine_[i][1] << '\n';
+		for (unsigned i = 0; i < ClosedPolygonalLine_.size(); i++) {
+			std::cout << "x_" << i << ' ';
+			ClosedPolygonalLine_[i].Print();
+		}
 	}
 
 private:
-	std::vector<std::vector<float>> ClosedPolygonalLine_;
+	std::vector<CPoint> ClosedPolygonalLine_;
 
-	float Distant(const std::vector<float>& p_1, const std::vector<float>& p_2) {
-		return sqrt(pow(p_1[0] - p_2[0], 2)
-			+ pow(p_1[1] - p_2[1], 2));
-	}
-
-	bool check_point_repeat(const std::vector<std::vector<float>>& ClosedLine) {
-		bool flag = true;
-		for (unsigned i = 0; i < ClosedLine.size() - 1; i++) {
-			for (unsigned j = i + 1; j < ClosedLine.size(); j++) {
-				if (ClosedLine[i][0] == ClosedLine[j][0] &&
-					ClosedLine[i][1] == ClosedLine[j][1]) {
-					flag = false;
-					break;
-				}
-			}
-		}
-		return flag;
+	bool check_point_number(const std::vector<CPoint>& Polygon) {
+		return !(Polygon.size() < 3);
 	}
 };
 
 class CPolygon {
 public:
-	explicit CPolygon(const std::vector<std::vector<float>>& Polygon = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}})
+	explicit CPolygon(const std::vector<CPoint>& Polygon = { CPoint{0.0f, 0.0f}, CPoint{1.0f, 0.0f}, 
+		CPoint{1.0f, 1.0f}, CPoint{0.0f, 1.0f}})
 		: Polygon_(Polygon)
 	{
-		if (!check_point_number(Polygon) || !check_point_repeat(Polygon) || !check_convex(Polygon)) {
-			std::cout << "Error: Incorrect input" << '\n';
+		if (!check_point_number(Polygon)) {
+			std::cout << "Error: Incorrect input - wrong number of points" << '\n';
+			std::exit(false);
+		}
+		else if (!check_point_repeat(Polygon)) {
+			std::cout << "Error: Incorrect input - some points repeats" << '\n';
+			std::exit(false);
+		}
+		else if (!check_convex(Polygon)) {
+			std::cout << "Error: Incorrect input - figure not convex" << '\n';
 			std::exit(false);
 		}
 	}
@@ -172,67 +196,47 @@ public:
 	float Square() {
 		float ans = 0;
 		for (unsigned i = 0; i < Polygon_.size() - 1; i++) {
-			ans += Polygon_[i][0] * Polygon_[i + 1][1] -
-				Polygon_[i][1] * Polygon_[i + 1][0];
+			ans += Polygon_[i].Absciss() * Polygon_[i + 1].Ordinat() -
+				Polygon_[i].Ordinat() * Polygon_[i + 1].Absciss();
 		}
-		ans += Polygon_[Polygon_.size() - 1][0] * Polygon_[0][1] -
-			Polygon_[Polygon_.size() - 1][1] * Polygon_[0][0];
+		ans += Polygon_[Polygon_.size() - 1].Absciss() * Polygon_[0].Ordinat() -
+			Polygon_[Polygon_.size() - 1].Ordinat() * Polygon_[0].Absciss();
 		return abs(ans) / 2;
 	}
 
 	float Perimeter() {
 		float ans = 0;
 		for (unsigned i = 1; i < Polygon_.size(); i++)
-			ans += Dist(Polygon_[i], Polygon_[i - 1]);
-		ans += Dist(Polygon_[0], Polygon_[Polygon_.size() - 1]);
+			ans += Distant(Polygon_[i], Polygon_[i - 1]);
+		ans += Distant(Polygon_[0], Polygon_[Polygon_.size() - 1]);
 		return ans;
 	}
 
 	void Print() {
-		for (unsigned i = 0; i < Polygon_.size(); i++)
-			std::cout << "x_" << i << ' ' << Polygon_[i][0] << ' ' << Polygon_[i][1] << '\n';
+		for (unsigned i = 0; i < Polygon_.size(); i++) {
+			std::cout << "x_" << i << ' ';
+			Polygon_[i].Print();
+		}
 	}
 
 private:
-	std::vector<std::vector<float>> Polygon_;
+	std::vector<CPoint> Polygon_;
 
-	float Dist(const std::vector<float>& p_1, const std::vector<float>& p_2) {
-		return sqrt(pow(p_1[0] - p_2[0], 2) 
-			+ pow(p_1[1] - p_2[1], 2));
+	bool check_point_number(const std::vector<CPoint>& Polygon) {
+		return !(Polygon.size() < 3);
 	}
 
-	bool check_point_number(const std::vector<std::vector<float>>& Polygon) {
-		bool flag = true;
-		if (Polygon.size() < 3)
-			flag = false;
-		return flag;
-	}
-
-	bool check_point_repeat(const std::vector<std::vector<float>>& Polygon) {
-		bool flag = true;
-		for (unsigned i = 0; i < Polygon.size() - 1; i++) {
-			for (unsigned j = i + 1; j < Polygon.size(); j++) {
-				if (Polygon[i][0] == Polygon[j][0] &&
-					Polygon[i][1] == Polygon[j][1]) {
-					flag = false;
-					break;
-				}
-			}
-		}
-		return flag;
-	}
-
-	bool check_convex(const std::vector<std::vector<float>>& Polygon) {
+	bool check_convex(const std::vector<CPoint>& Polygon) {
 		std::vector<float> A_1, A_2;
 		bool flag = true;
 		unsigned left = 0;
 		unsigned right = 0;
 
 		for (unsigned i = 1; i < Polygon.size() - 1; i++) {
-			A_1 = { Polygon[i][0] - Polygon[i - 1][0],
-				Polygon[i][1] - Polygon[i - 1][1] };
-			A_2 = { Polygon[i + 1][0] - Polygon[i][0],
-				Polygon[i + 1][1] - Polygon[i][1] };
+			A_1 = { Polygon[i].Absciss() - Polygon[i - 1].Absciss(),
+				Polygon[i].Ordinat() - Polygon[i - 1].Ordinat() };
+			A_2 = { Polygon[i + 1].Absciss() - Polygon[i].Absciss(),
+				Polygon[i + 1].Ordinat() - Polygon[i].Ordinat() };
 			if (A_1[0] * A_2[1] - A_1[1] * A_2[0] > 0)
 				left++;
 			else if (A_1[0] * A_2[1] - A_1[1] * A_2[0] == 0)
@@ -242,10 +246,10 @@ private:
 		}
 		unsigned i = Polygon.size() - 1;
 
-		A_1 = { Polygon[i][0] - Polygon[i - 1][0],
-				Polygon[i][1] - Polygon[i - 1][1] };
-		A_2 = { Polygon[0][0] - Polygon[i][0],
-			Polygon[0][1] - Polygon[i][1] };
+		A_1 = { Polygon[i].Absciss() - Polygon[i - 1].Absciss(),
+				Polygon[i].Ordinat() - Polygon[i - 1].Ordinat() };
+		A_2 = { Polygon[0].Absciss() - Polygon[i].Absciss(),
+			Polygon[0].Ordinat() - Polygon[i].Ordinat() };
 		if (A_1[0] * A_2[1] - A_1[1] * A_2[0] > 0)
 			left++;
 		else if (A_1[0] * A_2[1] - A_1[1] * A_2[0] == 0)
@@ -253,10 +257,10 @@ private:
 		else
 			right++;
 
-		A_1 = { Polygon[0][0] - Polygon[i][0],
-				Polygon[0][1] - Polygon[i][1] };
-		A_2 = { Polygon[1][0] - Polygon[0][0],
-			Polygon[1][1] - Polygon[0][1] };
+		A_1 = { Polygon[0].Absciss() - Polygon[i].Absciss(),
+				Polygon[0].Ordinat() - Polygon[i].Ordinat() };
+		A_2 = { Polygon[1].Absciss() - Polygon[0].Absciss(),
+			Polygon[1].Ordinat() - Polygon[0].Ordinat() };
 		if (A_1[0] * A_2[1] - A_1[1] * A_2[0] > 0)
 			left++;
 		else if (A_1[0] * A_2[1] - A_1[1] * A_2[0] == 0)
@@ -272,11 +276,11 @@ private:
 
 class CTriangle: public CPolygon {
 public:
-	CTriangle(const std::vector<std::vector<float>>& Triangle = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}})
+	CTriangle(const std::vector<CPoint>& Triangle = { CPoint{0.0f, 0.0f}, CPoint{1.0f, 0.0f}, CPoint{0.0f, 1.0f} })
 		: CPolygon(Triangle)
 	{
 		if (!check_point_number(Triangle)) {
-			std::cout << "Error: Incorrect input" << '\n';
+			std::cout << "Error: Incorrect input - wrong number of points" << '\n';
 			std::exit(false);
 		}
 	}
@@ -288,28 +292,25 @@ public:
 	~CTriangle() = default;
 
 	//methods
-	using CPolygon::Square;
-
-	using CPolygon::Perimeter;
-
-	using CPolygon::Print;
 
 private:
-	bool check_point_number(const std::vector<std::vector<float>>& Triangle) {
-		bool flag = true;
-		if (Triangle.size() != 3)
-			flag = false;
-		return flag;
+	bool check_point_number(const std::vector<CPoint>& Triangle) {
+		return Triangle.size() == 3;
 	}
 };
 
-class CTrapezoid : protected CPolygon {
+class CTrapezoid : public CPolygon {
 public:
-	explicit CTrapezoid(const std::vector<std::vector<float>>& Trapezoid = {{0.0f, 0.0f},{3.0f, 0.0f},{2.0f, 1.0f},{1.0f, 1.0f}})
+	explicit CTrapezoid(const std::vector<CPoint>& Trapezoid = { CPoint{0.0f, 0.0f}, CPoint{3.0f, 0.0f},
+		CPoint{2.0f, 1.0f}, CPoint{1.0f, 1.0f}})
 		: CPolygon(Trapezoid)
 	{
-		if (!check_point_number(Trapezoid) || !check_tr(Trapezoid)) {
-			std::cout << "Error: Incorrect input" << '\n';
+		if (!check_point_number(Trapezoid)) {
+			std::cout << "Error: Incorrect input - wrong number of points" << '\n';
+			std::exit(false);
+		}
+		else if (!check_tr(Trapezoid)) {
+			std::cout << "Error: Incorrect input - not trapezoid" << '\n';
 			std::exit(false);
 		}
 	}
@@ -321,32 +322,24 @@ public:
 	~CTrapezoid() = default;
 
 	//methods
-	using CPolygon::Square;
-
-	using CPolygon::Perimeter;
-
-	using CPolygon::Print;
 
 private:
-	bool check_point_number(const std::vector<std::vector<float>>& Trapezoid) {
-		bool flag = true;
-		if (Trapezoid.size() != 4)
-			flag = false;
-		return flag;
+	bool check_point_number(const std::vector<CPoint>& Trapezoid) {
+		return Trapezoid.size() == 4;
 	}
 
-	bool check_tr(const std::vector<std::vector<float>>& Trapezoid) {
+	bool check_tr(const std::vector<CPoint>& Trapezoid) {
 		std::vector<float> AB, BC, CD, DA;
 		bool flag = true;
 
-		AB = { Trapezoid[1][0] - Trapezoid[0][0],
-				Trapezoid[1][1] - Trapezoid[0][1] };
-		BC = { Trapezoid[2][0] - Trapezoid[1][0],
-			Trapezoid[2][1] - Trapezoid[1][1] };
-		CD = { Trapezoid[3][0] - Trapezoid[2][0],
-				Trapezoid[3][1] - Trapezoid[2][1] };
-		DA = { Trapezoid[0][0] - Trapezoid[3][0],
-			Trapezoid[0][1] - Trapezoid[3][1] };
+		AB = { Trapezoid[1].Absciss() - Trapezoid[0].Absciss(),
+				Trapezoid[1].Ordinat() - Trapezoid[0].Ordinat() };
+		BC = { Trapezoid[2].Absciss() - Trapezoid[1].Absciss(),
+			Trapezoid[2].Ordinat() - Trapezoid[1].Ordinat() };
+		CD = { Trapezoid[3].Absciss() - Trapezoid[2].Absciss(),
+				Trapezoid[3].Ordinat() - Trapezoid[2].Ordinat() };
+		DA = { Trapezoid[0].Absciss() - Trapezoid[3].Absciss(),
+			Trapezoid[0].Ordinat() - Trapezoid[3].Ordinat() };
 
 		if (AB[0] * CD[1] - AB[1] * CD[0] != 0) {
 			if (BC[0] * DA[1] - BC[1] * DA[0] != 0)
@@ -361,14 +354,14 @@ private:
 	}
 };
 
-class CRegularPolygon {
+class CRegularPolygon : public CPolygon {
 public:
-	CRegularPolygon(unsigned PointsNumber = 4, float Size = 1.0)
-		: PointsNumber_(PointsNumber)
-		, Size_(Size)
+	CRegularPolygon(const std::vector<CPoint>& RegularPolygon = { CPoint{0.0f, 0.0f}, CPoint{1.0f, 0.0f},
+		CPoint{1.0f, 1.0f}, CPoint{0.0f, 1.0f} })
+		: CPolygon(RegularPolygon)
 	{
-		if (PointsNumber <= 2 || Size <= 0) {
-			std::cout << "Error: Incorrect input" << '\n';
+		if (!check_regular(RegularPolygon)) {
+			std::cout << "Error: Incorrect input - not regular polygon" << '\n';
 			std::exit(false);
 		}
 	}
@@ -380,18 +373,30 @@ public:
 	~CRegularPolygon() = default;
 
 	//methods
-	double Square() {
-		return (PointsNumber_ * pow(Size_, 2.0))
-			/ (4.0 * tan(M_PI / PointsNumber_));
-	}
-
-	float Perimeter() {
-		return PointsNumber_ * Size_;
-	}
 
 private:
-	unsigned PointsNumber_;
-	float Size_;
+	bool check_regular(const std::vector<CPoint>& RegularPolygon) {
+		float x_mass = 0, y_mass = 0;
+
+		for (unsigned i = 0; i < RegularPolygon.size(); i++) {
+			x_mass += RegularPolygon[i].Absciss();
+			y_mass += RegularPolygon[i].Ordinat();
+		}
+
+		x_mass /= RegularPolygon.size();
+		y_mass /= RegularPolygon.size();
+
+		CPoint C_masss{x_mass, y_mass};
+
+		float flag_dist = Distant(RegularPolygon[0], C_masss);
+		
+		for (unsigned i = 1; i < RegularPolygon.size(); i++) {
+			if (flag_dist != Distant(RegularPolygon[i], C_masss))
+				return false;
+		}
+
+		return true;
+	}
 };
 
 int main() {
@@ -418,10 +423,16 @@ int main() {
 
 	AB.PrintPolygonalLine();
 	std::cout << AB.Lenght() << '\n';
-	AB.AddPoint({3, 4});
+
+	AB.AddPoint(CPoint{3, 4});
 	AB.PrintPolygonalLine();
 	std::cout << AB.Lenght() << '\n';
-	AB.AddPoint({1, 2});
+
+	AB.AddPoint(CPoint{1, 2});
+	AB.PrintPolygonalLine();
+	std::cout << AB.Lenght() << '\n';
+
+	AB.AddPoint(CPoint{1, 2});
 	AB.PrintPolygonalLine();
 	std::cout << AB.Lenght() << '\n';*/
 	
@@ -432,14 +443,14 @@ int main() {
 	line.Print();
 	std::cout << line.Lenght() << '\n';
 
-	CClosedPolygonalLine Aline({ {0,0},{1,1},{-1,1},{-1,-3},{0,-2} });
+	CClosedPolygonalLine Aline({ CPoint{0,0},CPoint{1,1},CPoint{1,-1},CPoint{-1,-3},CPoint{0,-2} });
 	Aline.Print();
 	std::cout << Aline.Lenght() << '\n';*/
 	
 	//CPolygon test
 	/*std::cout << "CPolygon test\n";
 
-	CPolygon fig({{0, 0}, {1, 0}, {0, -1}, {-1, 1}});
+	CPolygon fig({CPoint{0, 0}, CPoint{4, 0}, CPoint{4, 4}, CPoint{0, 4}});
 	std::cout << fig.Square() << '\n';
 	std::cout << fig.Perimeter() << '\n';
 	fig.Print();*/
@@ -447,7 +458,7 @@ int main() {
 	//CTriangle test
 	/*std::cout << "CTriangle test\n";
 
-	CTriangle abc({ {0,0},{0,3},{4,0} });
+	CTriangle abc({ CPoint{0,0},CPoint{0,3},CPoint{4,0} });
 
 	std::cout << abc.Perimeter() << '\n';
 	std::cout << abc.Square() << '\n';
@@ -456,18 +467,19 @@ int main() {
 	//CTrapezoid test
 	/*std::cout << "CTrapezoid test\n";
 
-	CTrapezoid tr({ {0,0},{8,0},{5,4},{3,4} });
+	CTrapezoid tr({ CPoint{0,0},CPoint{8,0},CPoint{5,4},CPoint{3,4} });
 	std::cout << tr.Perimeter() << '\n';
 	std::cout << tr.Square()<< '\n';
 	tr.Print();*/
 	
 	//CRegularPolygon test
-	/*std::cout << "CRegularPolygon test\n";
+	std::cout << "CRegularPolygon test\n";
 
-	CRegularPolygon g;
+	CRegularPolygon g({ CPoint{0,0}, CPoint{2,2}, CPoint{0,4}, CPoint{-2,2} });
+
 	std::cout << g.Perimeter() << '\n';
 	std::cout << g.Square() << '\n';
-	*/
+	g.Print();
 
 	return 0;
 }
