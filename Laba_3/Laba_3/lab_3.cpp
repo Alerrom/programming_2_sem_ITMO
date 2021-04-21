@@ -168,21 +168,21 @@ int main() {
 	for (const auto& type : types) {
 		max_route_for_type[type].first = "";
 		max_route_for_type[type].second = 0.0;
-		std::map<std::string, std::vector<std::pair<double, double>>> stops_cors_at_route;
+		std::map<std::string, std::vector<std::pair<double, double>>> stops_coords_at_route;
 
 		for (const auto& s : All_st) {
 			if (s.get_type() != type)
 				continue;
 
 			for (const auto& route : s.get_routes()) {
-				if (stops_cors_at_route.find(route) != stops_cors_at_route.end())
-					stops_cors_at_route[route].push_back(s.get_coords());
+				if (stops_coords_at_route.find(route) != stops_coords_at_route.end())
+					stops_coords_at_route[route].push_back(s.get_coords());
 				else 
-					stops_cors_at_route[route] = std::vector<std::pair<double, double>>({ s.get_coords() });
+					stops_coords_at_route[route] = std::vector<std::pair<double, double>>({ s.get_coords() });
 			}
 		}
 
-		for (auto [route, stops_coors] : stops_cors_at_route) {
+		for (auto [route, stops_coors] : stops_coords_at_route) {
 			double length = Station::get_route_length(stops_coors);
 
 			if (length > max_route_for_type[type].second) {
