@@ -42,7 +42,7 @@ bool one_of(InputIterator first, InputIterator last, UnaryPredicate pred) {
 			flag = true;
 		++first;
 	}
-	return true;
+	return flag;
 }
 
 template <class ForwardIterator, class Predicate>//OK
@@ -95,6 +95,8 @@ InputIterator find_not(InputIterator first, InputIterator last, const T& val) {
 
 template<class InputIterator, class T>//OK
 InputIterator find_backward(InputIterator first, InputIterator last, const T& val) {
+	InputIterator last_copy = last;
+
 	if (first == last)
 		return last;
 
@@ -104,16 +106,21 @@ InputIterator find_backward(InputIterator first, InputIterator last, const T& va
 			return last;
 		--last;
 	}
-	return first;
+	
+	if (*first == val)
+		return last_copy;
+	else
+		return first;
 }
 
 template<class InputIterator, class UnaryPredicate>//OK
 bool is_palindrome(InputIterator first, InputIterator last, UnaryPredicate pred) {
+	InputIterator first_copy = first;
 	if (first == last)
 		return true;
 
 	--last;
-	while (first <= last) {
+	while (first != last && first_copy != last) {//TODO(without <=>)
 		if (!(pred(*first) && pred(*last)))
 			return false;
 		++first;
@@ -154,7 +161,7 @@ bool less(int i, int j) {
 
 int main() {
 	std::vector<int> v = { 1, 3, 33, 0, -8, -8, -8, -8 };
-	std::vector<int> v_1 = { -5, -9, -7, 0, 2, 4, 6 };
+	std::vector<int> v_1 = { 5, 9, 7, 2, 4, 6 };
 
 	std::vector<CPoint> points = { {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6} };
 
@@ -172,6 +179,7 @@ int main() {
 	p = find_backward(v.begin(), v.end(), 7);
 	std::cout << "find_backward " << *p << '\n';
 	std::cout << "is_palindrome " << is_palindrome(v.begin(), v.end(), pos) << '\n';
+	std::cout << "is_palindrome for v_1 " << is_palindrome(v_1.begin(), v_1.end(), pos) << '\n';
 
 
 	std::cout << "\nFor CPoint\n";
