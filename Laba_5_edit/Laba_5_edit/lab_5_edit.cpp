@@ -25,8 +25,8 @@ public:
 	bool operator==(const Iterator& rhs) const { return ind_ == rhs.ind_; }
 	bool operator!=(const Iterator& rhs) const { return !operator==(rhs); }
 
-	reference operator*() { return data_[(front_ + ind_) % capacity_]; }
-	pointer operator->() { return  data_ + (front_ + ind_) % capacity_; }
+	reference operator*() { return data_[(front_ + ind_ + 1) % capacity_]; }
+	pointer operator->() { return  data_ + (front_ + ind_ + 1) % capacity_; }
 
 	Iterator& operator++() { ind_++; return *this; }
 	Iterator& operator--() { ind_--; return *this; }
@@ -147,7 +147,7 @@ Iterator<const T> CircularBuffer<T>::begin() const {
 
 template<class T>
 Iterator<const T> CircularBuffer<T>::end() const {
-	return Iterator<const T>{ data_, capacity_, back_ind_, front_ind_ };
+	return Iterator<const T>{ data_, capacity_, size_, front_ind_ };
 }
 
 template<class T>
@@ -157,7 +157,7 @@ Iterator<T> CircularBuffer<T>::begin() {
 
 template<class T>
 Iterator<T> CircularBuffer<T>::end() {
-	return Iterator<T>{ data_, capacity_, back_ind_, front_ind_ };
+	return Iterator<T>{ data_, capacity_, size_, front_ind_ };
 }
 
 
