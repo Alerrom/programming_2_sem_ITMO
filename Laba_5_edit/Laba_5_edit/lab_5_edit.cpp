@@ -62,13 +62,15 @@ class CircularBuffer {
 public:
 	CircularBuffer(int capacity = 0)
 		:capacity_(capacity + 1) {
-		data_ = new T[capacity_ + 1];
+		data_ = new T[capacity_];
 	}
 	~CircularBuffer() {
 		delete data_;
 	}
 
 	void push_back(const T& v) {
+		if (capacity_ == 1)
+			throw std::out_of_range("Think about");
 		data_[back_ind_] = v;
 		back_ind_ = (back_ind_ + 1) % capacity_;
 		if (size_ == capacity_ - 1)
@@ -77,6 +79,8 @@ public:
 			++size_;
 	}
 	void push_front(const T& v) {
+	        if (capacity_ == 1)
+			throw std::out_of_range("Think about");
 		data_[front_ind_] = v;
 		front_ind_ = (front_ind_ - 1 + capacity_) % capacity_;
 		if (size_ == capacity_ - 1)
