@@ -1,0 +1,9 @@
+﻿  cube.cpp
+c:\users\александр\source\repos\laba_6_final_boss\laba_6_final_boss\cube.cpp(111): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\александр\source\repos\laba_6_final_boss\laba_6_final_boss\cube.cpp(124): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\александр\source\repos\laba_6_final_boss\laba_6_final_boss\cube.cpp(137): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\александр\source\repos\laba_6_final_boss\laba_6_final_boss\cube.cpp(151): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\александр\source\repos\laba_6_final_boss\laba_6_final_boss\cube.cpp(165): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\александр\source\repos\laba_6_final_boss\laba_6_final_boss\cube.cpp(179): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\александр\source\repos\laba_6_final_boss\laba_6_final_boss\cube.cpp(82): warning C4715: print_color: значение возвращается не при всех путях выполнения
+  Laba_6_final_boss.vcxproj -> C:\Users\Александр\source\repos\Laba_6_final_boss\Debug\Laba_6_final_boss.exe
