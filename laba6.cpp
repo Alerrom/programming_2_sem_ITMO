@@ -1,9 +1,40 @@
 #include <iostream>
 #include <vector>
-#include <list>
 #include <map>
 #include <fstream>
 #include <sstream>
+
+/*
+Some tips:
+colors
+	WWW
+	WWW
+	WWW
+OOO GGG RRR BBB
+OOO GGG RRR BBB
+OOO GGG RRR BBB
+	YYY
+	YYY
+	YYY
+
+sides:
+  U
+L F R B
+  D
+
+  0
+1 2 3 4
+  5
+
+side:
+0 1 2
+7 x 3
+6 5 4
+
+Now every side is uint32_t:
+4 bits per square - 0000 0000 0000 0000 0000 0000 0000 0000
+indices of sides -- 0    1    2    3    4    5    6    7
+*/
 
 enum Rotation {
 	U = 2, Up = -2, U2 = 4,
@@ -60,6 +91,11 @@ public:
 
 	uint32_t get_val(size_t side, size_t index) {
 		return (sides[side] & (0x0000000F << (index * 4))) >> (index * 4);
+	}
+
+	void set_val(size_t side, size_t index, uint32_t new_val) {
+		sides[side] &= ~(0x0000000F << (index * 4));
+		sides[side] |= new_val << (index * 4);
 	}
 
 	uint32_t get_side(size_t index) {
@@ -158,7 +194,7 @@ public:
 			sides[5] == 0x55555555;
 	}
 
-	void combo_move(std::list<Rotation>& data) {
+	void combo_move(std::vector<Rotation>& data) {
 		for (auto com : data) {
 			switch (com)
 			{
@@ -259,10 +295,6 @@ private:
 		sides[side] <<= 8;
 		sides[side] |= temp;
 	}
-	void set_val(size_t side, size_t index, uint32_t new_val) {
-		sides[side] &= ~(0x0000000F << (index * 4));
-		sides[side] |= new_val << (index * 4);
-	}
 };
 
 std::ostream& operator<<(std::ostream& out, const Cube& cube) {
@@ -357,6 +389,7 @@ public:
 			}
 			else if (comm1 == "solve") {
 				//give_solution
+				std::cout << "Sorry, doesn't work yet:(\n";
 			}
 			else if (comm1 == "exit") {
 				std::cout << "See you later!\n";
@@ -395,9 +428,9 @@ private:
 		fout.close();
 	}
 
-	std::list<Rotation> parse_turns(const std::string& line) {
+	std::vector<Rotation> parse_turns(const std::string& line) {
 		std::stringstream ss;
-		std::list<Rotation> rot;
+		std::vector<Rotation> rot;
 		ss << line;
 		std::string turn;
 		while (ss >> turn)
